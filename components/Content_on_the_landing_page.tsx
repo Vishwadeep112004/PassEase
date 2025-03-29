@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Image, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Props = {
   navigation: NavigationProp<any>;
@@ -8,7 +9,11 @@ type Props = {
 
 const Content_on_the_landing_page: React.FC<Props> = ({ navigation }) => {
   return (
-    <View style={styles.overlay}>
+
+    <LinearGradient 
+    colors={['#2980B9','#89253e']}  // Gradient colors
+    style={styles.overlay}
+            >
       <View style={styles.image_text}>
         <Image source={require("../app/images/img.png")} style={styles.image} />
       </View>
@@ -20,8 +25,7 @@ const Content_on_the_landing_page: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
+      </LinearGradient>  );
 };
 export default Content_on_the_landing_page;
 
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
     height: 55,
   },
   buttonText: {
-    color: "black",
+    color: "white",
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",

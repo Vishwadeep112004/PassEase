@@ -14,15 +14,17 @@ import {
 
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from "react-native-picker-select";
+import { LinearGradient } from 'expo-linear-gradient';
+
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'black',
-    flex:1
+    flex:1,
+    marginTop:"10%"
   },
   heading: {
     color: 'white',
-    fontSize: 30,
+    fontSize: 35,
     marginTop: '5%',
     alignSelf: 'center',
     fontWeight:'bold'
@@ -64,6 +66,11 @@ const styles = StyleSheet.create({
     margin:'10%'
   },
   buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  buttonText2:{
     color: 'black',
     fontSize: 16,
     fontWeight: 'bold'
@@ -111,6 +118,10 @@ export default class Content_on_the_register_page extends Component {
 
   render() {
     return (
+      <LinearGradient 
+      colors={['#2980B9','#89253e']}  // Gradient colors
+      style={{ flex: 1 }} // ✅ Ensure full coverage
+                      >
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -182,7 +193,7 @@ export default class Content_on_the_register_page extends Component {
               style={styles.uploadButton}
               onPress={this.handleDocumentPick}
             >
-              <Text style={styles.buttonText}>Choose File</Text>
+              <Text style={styles.buttonText2}>Choose File</Text>
             </TouchableOpacity>
             {this.state.selectedDocument && (
               <Text style={styles.selectedFileText}>
@@ -199,6 +210,7 @@ export default class Content_on_the_register_page extends Component {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      </LinearGradient>
     )
   }
 }
