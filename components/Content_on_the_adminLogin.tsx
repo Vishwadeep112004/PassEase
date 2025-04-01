@@ -19,9 +19,7 @@ type Props = {
 };
 
 
-
-
-const Content_on_the_login_page = ({ navigation }: Props)=>  {
+const Content_on_the_adminLogin = ({ navigation }: Props)=>  {
   
     return (
       <LinearGradient 
@@ -40,7 +38,7 @@ const Content_on_the_login_page = ({ navigation }: Props)=>  {
           <Text style={styles.heading}>LOGIN</Text>
           
           <View style={styles.formContainer}>
-            <Text style={styles.text}>Enter user mail:</Text>
+            <Text style={styles.text}>Authority mail:</Text>
             <TextInput 
               style={styles.input}
               placeholder='Enter the mail'
@@ -69,7 +67,7 @@ const Content_on_the_login_page = ({ navigation }: Props)=>  {
     )
   }
 
-  export default Content_on_the_login_page;
+  export default Content_on_the_adminLogin;
 
   const styles = StyleSheet.create({
     container: {

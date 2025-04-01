@@ -7,6 +7,7 @@ import Content_on_the_login_page from "@/components/Content_on_the_login_page";
 import Content_on_the_register_page from "@/components/Content_on_the_register_page";
 import Content_on_theDashboard from "@/components/Content_on_theDashboard";
 import Content_on_the_Profile from "@/components/Content_on_the_Profile";
+import Content_on_the_adminLogin from "@/components/Content_on_the_adminLogin";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ const Layout = () => {
         <Stack.Screen name="Register" component={Content_on_the_register_page} />
         <Stack.Screen name="Dashboard" component={Content_on_theDashboard} />
         <Stack.Screen name="Profile" component={Content_on_the_Profile} />
+        <Stack.Screen name="adminLogin" component={Content_on_the_adminLogin} />    
       </Stack.Navigator>
     
   );

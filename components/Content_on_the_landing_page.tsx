@@ -19,7 +19,10 @@ const Content_on_the_landing_page: React.FC<Props> = ({ navigation }) => {
       </View>
       <View style={styles.btnBox}>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>Login As Student</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("adminlogin")}>
+          <Text style={styles.buttonText}>Login As Authority</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Register")}>
           <Text style={styles.buttonText}>Register</Text>
@@ -50,7 +53,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF3B3B",
     padding: 10,
     borderRadius: 10,
-    width: 150,
+    width: 200,
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 15,
