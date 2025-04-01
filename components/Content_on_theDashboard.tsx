@@ -22,11 +22,11 @@ const Content_on_theDashboard = ({ navigation }: Props)=>  {
          <View style={styles.Container}>
              <Image source={require("../app/images/person.jpg")} style={styles.Image}/>
              <View style={styles.infoContainer}>
-                 <Text style={styles.Text}>State : {state}</Text>
+                 <Text style={styles.Text}>State: {state}</Text>
              </View>
-             <View style={styles.infoContainer}><Text style={styles.Text}>{name}</Text></View>
-             <View style={styles.infoContainer}><Text style={styles.Text}>{days}</Text></View>
-             <View style={styles.infoContainer}><Text style={styles.Text}>{route}</Text></View>
+             <View style={styles.infoContainer}><Text style={styles.Text}>Name: {name}</Text></View>
+             <View style={styles.infoContainer}><Text style={styles.Text}>days left: {days}</Text></View>
+             <View style={styles.infoContainer}><Text style={styles.Text}>valid route: {route}</Text></View>
          </View>
         <TouchableOpacity style={styles.button} onPress={alert}>
                   <Text style={styles.buttonText}>Scan QR</Text>
@@ -117,9 +117,8 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
     },
     icon: {
-        width: 30,   // Icon width
-        height: 30,  // Icon height
-        tintColor: 'white',  // Change icon color to white
+        width: 24,
+        height: 24,
     }
     
     
