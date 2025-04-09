@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import React, { lazy, useState } from 'react';
 import { NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -20,35 +20,43 @@ const Content_on_the_Profile = ({ navigation }: Props) => {
         >
 
             <View style={styles.Container}>
+
+                <View style={styles.editnav}>
+                    <Text style={styles.navedittext}>Edit Profile</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                    <Image source={require("../app/images/edit.png")} style={styles.editIcon} />
+                    </TouchableOpacity>
+                </View>
+
                 <Image source={require("../app/images/person.jpg")} style={styles.Image} />
+
+               <View style={styles.label}>
+                    <Text style={styles.Text}>Full Name:</Text>
+                </View> 
+               <View style={styles.infoContainer}>
+                    <Text style={styles.Text}>{name}</Text>
+                </View>
                 
+
+               <View style={styles.label}>
+                    <Text style={styles.Text}>Full Name:</Text>
+                </View> 
                 <View style={styles.infoContainer}>
-                    <Text style={styles.Text}>"{days}"</Text> 
-                    <TouchableOpacity> 
-                        <Image source={require('../app/images/edit.png')} style={styles.icon} /> 
-                    </TouchableOpacity> 
+                    <Text style={styles.Text}>{days}</Text>  
                 </View>
 
+
+               <View style={styles.label}>
+                    <Text style={styles.Text}>Full Name:</Text>
+                </View> 
                 <View style={styles.infoContainer}>
-                    <Text style={styles.Text}>"{days}"</Text> 
-                    <TouchableOpacity> 
-                        <Image source={require('../app/images/edit.png')} style={styles.icon} /> 
-                    </TouchableOpacity> 
+                    <Text style={styles.Text}>{route}</Text> 
                 </View>
 
-                <View style={styles.infoContainer}>
-                    <Text style={styles.Text}>"{days}"</Text> 
-                    <TouchableOpacity> 
-                        <Image source={require('../app/images/edit.png')} style={styles.icon} /> 
-                    </TouchableOpacity> 
-                </View>
                 
             </View>
 
 
-            <TextInput placeholder='Change your email'></TextInput>
-            <TextInput placeholder='Change password'></TextInput>
-            <TextInput placeholder='Confirm password'></TextInput>
 
 
             <View style={styles.NavBar}>
@@ -72,9 +80,12 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
         // backgroundColor:"violet",
-
+        paddingTop: "10%",
         alignItems: "center",
+        width: "auto",
+        height: "auto",
     },
+    
     Container: {
         backgroundColor: "red",
         height: "70%",
@@ -93,18 +104,22 @@ const styles = StyleSheet.create({
         marginBottom: "5%"
     },
     infoContainer: {
+        margin: 50,
         flexDirection: 'row',  // Align items in a row
         alignItems: 'center',  // Center items vertically
         justifyContent: 'space-between',  // Space between text and button
-        padding: 10,
+        padding: 15,
+        borderWidth: 1,
         marginVertical: 5,
         backgroundColor: '#fff',
         borderRadius: 8,
 
     },
     Text: {
-        fontSize: 16,
+        fontSize: 20,
+        fontFamily: 'Poppins',
         color: '#333',
+        fontWeight: '700',
     },
     NavBar: {
         flexDirection: 'row',
@@ -127,11 +142,41 @@ const styles = StyleSheet.create({
         height: 24,
     },
 
-    editBtn:
-    {
+    editnav:{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: '#ffff',
+        borderRadius:30,
+        width: '100%',
+        shadowRadius: 30,
+        shadowColor: '#125212',
+        shadowOpacity: 1,
+        shadowOffset:{width: 3, height: 4},
+        marginBottom: 30,
+    },
+    navedittext:{
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 10,
+    },
 
-    }
+    editIcon: {
+        padding: 10,
+        width: 30,
+        height: 30,
+        margin: 'auto',
+        marginRight: 10,
+    },
 
+    editBtn: {
+    },
+
+    label: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
 
 
 })

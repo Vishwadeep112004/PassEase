@@ -20,7 +20,7 @@ const Layout = () => {
         <Stack.Screen name="Register" component={Content_on_the_register_page} />
         <Stack.Screen name="Dashboard" component={Content_on_theDashboard} />
         <Stack.Screen name="Profile" component={Content_on_the_Profile} />
-        <Stack.Screen name="adminLogin" component={Content_on_the_adminLogin} />    
+        <Stack.Screen name="adminlogin" component={Content_on_the_adminLogin} />    
       </Stack.Navigator>
     
   );
