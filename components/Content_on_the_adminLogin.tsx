@@ -26,7 +26,6 @@ const Content_on_the_adminLogin = ({ navigation }: Props) => {
 
   const handleLogin = () => {
     if (userName === correctuserName && password === correctPassword) {
-      Alert.alert("Login Successful");
       navigation.navigate("adminDashboard");
     } else if (userName === "" || password === "") {
       Alert.alert("Login Failed", "Please fill in all fields");
