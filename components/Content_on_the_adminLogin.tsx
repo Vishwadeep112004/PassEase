@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView, 
   ScrollView,
   Platform 
-} from 'react-native'
+} from 'react-native';
 
 import { NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,14 +18,34 @@ type Props = {
   navigation: NavigationProp<any>;
 };
 
+const Content_on_the_adminLogin = ({ navigation }: Props) => {
+  const correctuserName = "Admin";
+  const correctPassword = "Admin@123";
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
 
-const Content_on_the_adminLogin = ({ navigation }: Props)=>  {
-  
-    return (
-      <LinearGradient 
-                      colors={['#2980B9','#89253e']}  // Gradient colors
-                      style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} // ✅ Ensure full coverage
-                      >
+  const handleLogin = () => {
+    if (userName === correctuserName && password === correctPassword) {
+      Alert.alert("Login Successful");
+      navigation.navigate("adminDashboard");
+    } else if (userName === "" || password === "") {
+      Alert.alert("Login Failed", "Please fill in all fields");
+    } else if (userName !== correctuserName) {
+      Alert.alert("Login Failed", "Incorrect username");
+      setUserName("");
+      setPassword("");
+    } else if (password !== correctPassword) {
+      Alert.alert("Login Failed", "Incorrect password");
+      setUserName("");
+      setPassword("");
+    }
+  };
+
+  return (
+    <LinearGradient 
+      colors={['#2980B9', '#89253e']}
+      style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+    >
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -44,6 +64,8 @@ const Content_on_the_adminLogin = ({ navigation }: Props)=>  {
               placeholder='Enter the mail'
               placeholderTextColor='black'
               autoCorrect={false}
+              value={userName}
+              onChangeText={(text) => setUserName(text)}
             />
             
             <Text style={styles.text}>Password:</Text>
@@ -53,72 +75,70 @@ const Content_on_the_adminLogin = ({ navigation }: Props)=>  {
               placeholderTextColor='black'
               secureTextEntry
               autoCorrect={false}
+              value={password}
+              onChangeText={(text) => setPassword(text)}
             />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Dashboard")}>
-          
-
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-      </LinearGradient>
-    )
-  }
+    </LinearGradient>
+  );
+};
 
-  export default Content_on_the_adminLogin;
+export default Content_on_the_adminLogin;
 
-  const styles = StyleSheet.create({
-    container: {
-
-      height:'90%'
-    },
-    heading: {
-      color: 'white',
-      fontSize: 60,
-      marginTop: '30%',
-      alignSelf: 'center',
-      fontWeight:'bold'
-    },
-    formContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgb(255, 59, 59)',
-      width: '85%',
-      borderRadius: 15,
-      alignSelf: 'center',
-      paddingVertical: 20,
-      marginTop: '20%',
-  
-    },
-    input: {
-      backgroundColor: 'white',
-      width: '80%',
-      marginVertical: 10,
-      padding: 15,
-      borderRadius: 15,
-      color:'black'
-    },
-    text: {
-      alignSelf: 'flex-start',
-      marginLeft: '10%',
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: 'white',
-    },
-    button: {
-      backgroundColor: 'rgb(255, 59, 59)',
-      padding: 15,
-      borderRadius: 5,
-      width: 200,
-      alignItems: 'center',
-      alignSelf: 'center',
-      margin:'20%'
-    },
-    buttonText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: 'bold'
-    },
-  })
+const styles = StyleSheet.create({
+  container: {
+    height: '90%'
+  },
+  heading: {
+    color: 'white',
+    fontSize: 60,
+    marginTop: '30%',
+    alignSelf: 'center',
+    fontWeight: 'bold'
+  },
+  formContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgb(255, 59, 59)',
+    width: '85%',
+    borderRadius: 15,
+    alignSelf: 'center',
+    paddingVertical: 20,
+    marginTop: '20%',
+  },
+  input: {
+    backgroundColor: 'white',
+    width: '80%',
+    marginVertical: 10,
+    padding: 15,
+    borderRadius: 15,
+    color: 'black'
+  },
+  text: {
+    alignSelf: 'flex-start',
+    marginLeft: '10%',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  button: {
+    backgroundColor: 'rgb(255, 59, 59)',
+    padding: 15,
+    borderRadius: 5,
+    width: 200,
+    alignItems: 'center',
+    alignSelf: 'center',
+    margin: '20%'
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+});
