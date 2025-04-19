@@ -29,12 +29,74 @@ type Props = {
 const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [photo, setPhoto] = useState<any>(null);
+  const [route, setRoute] = useState<string | null>(null);
 
-  const handleDocumentPick = async () => {
+  const verification = () => {
+    if (!fullName) {
+      Alert.alert("Error", "Please enter your full name.");
+      return;
+    }
+  
+    if (!password) {
+      Alert.alert("Error", "Please enter a password.");
+      return;
+    }
+  
+    if (!confirmPassword) {
+      Alert.alert("Error", "Please confirm your password.");
+      return;
+    }
+  
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+  
+    if (!selectedValue) {
+      Alert.alert("Error", "Please select a route.");
+      return;
+    }
+  
+    if (!photo) {
+      Alert.alert("Error", "Please upload a photo.");
+      return;
+    }
+  
+    if (!selectedDocument) {
+      Alert.alert("Error", "Please upload a document.");
+      return;
+    }
+
+    navigation.navigate("Dashboard");
+  };
+  
+  
+
+  const handleDocumentPickdoc = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({});
       if (result.assets && result.assets.length > 0) {
         setSelectedDocument({ name: result.assets[0].name });
+  
+        if (Platform.OS === "android") {
+          ToastAndroid.show("File uploaded successfully!", ToastAndroid.SHORT);
+        } else {
+          Alert.alert("Success", "File uploaded successfully!");
+        }
+      }
+    } catch (error) {
+      console.log("Error picking file:", error);
+    }
+  };
+  const handleDocumentPickpohoto = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({});
+      if (result.assets && result.assets.length > 0) {
+        setPhoto({ name: result.assets[0].name });
   
         if (Platform.OS === "android") {
           ToastAndroid.show("File uploaded successfully!", ToastAndroid.SHORT);
@@ -58,14 +120,35 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.heading}>REGISTER</Text>
           <View style={styles.formContainer}>
             <Text style={styles.text}>Full Name:</Text>
-            <TextInput style={styles.input} placeholder='Enter your full name' placeholderTextColor='black' autoCorrect={false} />
-            
+            <TextInput
+              style={styles.input}
+              placeholder='Enter your full name'
+              placeholderTextColor='black'
+              autoCorrect={false}
+              value={fullName}
+              onChangeText={setFullName}
+            />
+
             <Text style={styles.text}>Password:</Text>
-            <TextInput style={styles.input} placeholder='Enter password' placeholderTextColor='black' secureTextEntry autoCorrect={false} />
-            
+            <TextInput
+              style={styles.input}
+              placeholder='Enter your full name'
+              placeholderTextColor='black'
+              autoCorrect={false}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={true}
+            />
             <Text style={styles.text}>Confirm Password:</Text>
-            <TextInput style={styles.input} placeholder='Re-enter password' placeholderTextColor='black' secureTextEntry autoCorrect={false} />
-            
+            <TextInput
+              style={styles.input}
+              placeholder='Enter your full name'
+              placeholderTextColor='black'
+              autoCorrect={false}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={true}
+            />
             <RNPickerSelect
               onValueChange={(value) => setSelectedValue(value)}
               items={[
@@ -92,18 +175,18 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
             />
 
             <Text style={styles.text}>Upload Photo:</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPickpohoto}>
               <Text style={styles.buttonText2}>Choose File</Text>
             </TouchableOpacity>
             
             <Text style={styles.text}>Upload Document:</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPickdoc}>
               <Text style={styles.buttonText2}>Choose File</Text>
             </TouchableOpacity>
             {selectedDocument && <Text style={styles.selectedFileText}>{selectedDocument.name}</Text>}
           </View>
           
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Dashboard")}>
+          <TouchableOpacity style={styles.button} onPress={verification}>
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -149,7 +232,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    marginTop: 0, // Ensure number instead of string
+    marginTop: 0, 
   },
   button: {
     backgroundColor: 'rgb(255, 59, 59)',
