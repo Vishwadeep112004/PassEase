@@ -90,6 +90,11 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
               }}
               placeholder={{ label: "Choose a route...", value: null }}
             />
+
+            <Text style={styles.text}>Upload Photo:</Text>
+            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+              <Text style={styles.buttonText2}>Choose File</Text>
+            </TouchableOpacity>
             
             <Text style={styles.text}>Upload Document:</Text>
             <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
@@ -132,11 +137,11 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: 'white',
     width: '80%',
-    marginVertical: 15,
+    marginVertical: 10,
     padding: 15,
     borderRadius: 15,
     color: 'black',
-    height: '10%',
+    height: '9%',
   },
   text: {
     alignSelf: 'flex-start',
@@ -153,7 +158,7 @@ const styles = StyleSheet.create({
     width: 200,
     alignItems: 'center',
     alignSelf: 'center',
-    margin: '10%',
+    margin: '5%',
   },
   buttonText: {
     color: 'white',
