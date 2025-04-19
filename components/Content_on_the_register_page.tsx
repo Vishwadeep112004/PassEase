@@ -38,53 +38,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   const [photo, setPhoto] = useState<any>(null);
   const [email, setEmail] = useState('');
 
-  const verification = () => {
-    if (!fullName) {
-      Alert.alert("Error", "Please enter your full name.");
-      return;
-    }
-    if (!email) {
-      Alert.alert("Error", "Please enter your email.");
-      return;
-    }
-    if (!email.includes('@')) {
-      Alert.alert("Error", "Please enter a valid email address.");
-      return;
-    }
 
-  
-    if (!password) {
-      Alert.alert("Error", "Please enter a password.");
-      return;
-    }
-  
-    if (!confirmPassword) {
-      Alert.alert("Error", "Please confirm your password.");
-      return;
-    }
-  
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      return;
-    }
-  
-    if (!route) {
-      Alert.alert("Error", "Please select a route.");
-      return;
-    }
-  
-    if (!photo) {
-      Alert.alert("Error", "Please upload a photo.");
-      return;
-    }
-  
-    if (!selectedDocument) {
-      Alert.alert("Error", "Please upload a document.");
-      return;
-    }
-
-    navigation.navigate("Dashboard");
-  };
 
   const handleDocumentPickdoc = async () => {
     try {
@@ -145,47 +99,68 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
  
 
   const registerUser = async () => {
+    // Client-side validations
+    if (!fullName) return Alert.alert("Error", "Please enter your full name.");
+    if (!email) return Alert.alert("Error", "Please enter your email.");
+    if (!email.includes('@')) return Alert.alert("Error", "Enter a valid email.");
+    if (!password) return Alert.alert("Error", "Please enter a password.");
+    if (!confirmPassword) return Alert.alert("Error", "Please confirm your password.");
+    if (password !== confirmPassword) return Alert.alert("Error", "Passwords do not match.");
+    if (!route) return Alert.alert("Error", "Please select a route.");
+    if (!photo?.uri || !photo?.name || !photo?.type) return Alert.alert("Error", "Invalid profile photo.");
+    if (!selectedDocument?.uri || !selectedDocument?.name) return Alert.alert("Error", "Invalid profile document.");
+  
     try {
       const formData = new FormData();
-      
-      // Append user data
-      formData.append("fullname", fullName);  // Updated from fullName to fullname to match the backend field
-      formData.append("email", email);  // Add email to the formData (you need to define the 'email' field in your component)
+  
+      formData.append("fullname", fullName);
+      formData.append("email", email);
       formData.append("password", password);
-      formData.append("route", route || '');
+      formData.append("route", route);
   
-      // Append profile picture if available
-      if (photo) {
-        formData.append("profilepic", {
-          uri: photo.uri,
-          type: photo.type, // e.g. 'image/jpeg'
-          name: photo.name  // e.g. 'photo.jpg'
-        } as any);  // 'as any' needed for React Native FormData
+      formData.append("profilepic", {
+        uri: photo.uri,
+        type: photo.type,
+        name: photo.name
+      } as any);
+  
+      formData.append("profilepdf", {
+        uri: selectedDocument.uri,
+        type: selectedDocument.type || 'application/pdf',
+        name: selectedDocument.name || 'document.pdf'
+      } as any);
+  
+      // Optional: Debug formData
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
       }
   
-      // Append document (PDF)
-      if (selectedDocument) {
-        formData.append("profilepdf", {
-          uri: selectedDocument.uri,
-          type: selectedDocument.type || 'application/pdf',  // Default MIME type if none provided
-          name: selectedDocument.name || 'document.pdf'  // Default name if not provided
-        } as any);
-      }
-  
-      // Send POST request to register the user
       const res = await axios.post("http://192.168.190.28:5000/api/users/register", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
       });
-      
-      // Handle response (successful registration)
-      Alert.alert("Success", "User Registered!");
-      navigation.navigate("Dashboard");  // Navigate to the next screen after registration
   
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Something went wrong");
+      Alert.alert("Success", "User Registered!");
+      navigation.navigate("Dashboard");
+  
+    } catch (error: any) {
+      console.error("Register Error:", error?.response?.data || error.message);
+    
+      if (error.response) {
+        const msg = error.response.data?.message 
+                    || (typeof error.response.data === "string" ? error.response.data : "Invalid input or file format.");
+        Alert.alert("Registration Failed", msg);
+      } else if (error.request) {
+        Alert.alert("Network Error", "Could not reach the server. Please check your connection.");
+      } else {
+        Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      }
     }
+    
   };
+  
+  
   
 
   
@@ -276,7 +251,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
             {selectedDocument && <Text style={styles.selectedFileText}>{selectedDocument.name}</Text>}
           </View>
           
-          <TouchableOpacity style={styles.button} onPress={verification}>
+          <TouchableOpacity style={styles.button} onPress={registerUser}>
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
         </ScrollView>

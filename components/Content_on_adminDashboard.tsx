@@ -38,7 +38,7 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
     }
   };
 
-  // Use effect to call fetchUsers when the component mounts
+  
   useEffect(() => {
     fetchUsers();
   }, []);
