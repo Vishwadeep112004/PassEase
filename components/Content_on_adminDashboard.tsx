@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
-  TextInput, 
   TouchableOpacity, 
   Alert, 
   KeyboardAvoidingView, 
@@ -13,7 +12,8 @@ import {
 
 import { NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Info from './Info';
+import Info from './Info';  // Assuming you have an Info component
+import axios from 'axios';
 
 type Props = {
   navigation: NavigationProp<any>;
@@ -21,6 +21,27 @@ type Props = {
 
 const Content_on_adminDashboard = ({ navigation }: Props) => {
 
+  const [userData, setUserData] = useState<any[]>([]);  // User data state
+  const [loading, setLoading] = useState(false);  // Loading state
+
+  // Fetch users from the backend
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://192.168.190.28:5000/api/users/getall');  // Replace with actual backend URL
+      setUserData(response.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      Alert.alert("Error", "Could not fetch users.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use effect to call fetchUsers when the component mounts
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
     <LinearGradient 
@@ -36,45 +57,26 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
           contentContainerStyle={{ flexGrow: 2 }}
           keyboardShouldPersistTaps="handled">
             <Text style={styles.heading}>Admin Dashboard</Text>
-          <View style={styles.formContainer}>
-            <Info
-              name="Alice"
-              route="Kolhapur to Sangli"
-              doc1="https://example.com/alice-doc1.pdf"
-              doc2="https://example.com/alice-doc2.pdf"
-            />
-            <Info
-              name="Bob"
-              route="Pune to Mumbai"
-              doc1="https://example.com/bob-doc1.pdf"
-              doc2="https://example.com/bob-doc2.pdf"
-            />
-            <Info
-              name="Charlie"
-              route="Satara to Nashik"
-              doc1="https://example.com/charlie-doc1.pdf"
-              doc2="https://example.com/charlie-doc2.pdf"
-            />
-            <Info
-              name="Diana"
-              route="Sangli to Solapur"
-              doc1="https://example.com/diana-doc1.pdf"
-              doc2="https://example.com/diana-doc2.pdf"
-            />
-            <Info
-              name="Ethan"
-              route="Kolhapur to Pune"
-              doc1="https://example.com/ethan-doc1.pdf"
-              doc2="https://example.com/ethan-doc2.pdf"
-            />
-            <Info
-              name="Fiona"
-              route="Nagpur to Aurangabad"
-              doc1="https://example.com/fiona-doc1.pdf"
-              doc2="https://example.com/fiona-doc2.pdf"
-            />
-          </View>
-
+            
+            <View style={styles.formContainer}>
+              {loading ? (
+                <Text style={styles.loading}>Loading users...</Text>
+              ) : (
+                userData.length > 0 ? (
+                  userData.map((user, index) => (
+                    <Info
+                      key={index}
+                      name={user.fullname}
+                      route={user.route}
+                      doc1={user.document1}  // Assuming document1 is the correct field
+                      doc2={user.document2}  // Assuming document2 is the correct field
+                    />
+                  ))
+                ) : (
+                  <Text>No users found</Text>
+                )
+              )}
+            </View>
         </ScrollView> 
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -86,8 +88,6 @@ export default Content_on_adminDashboard;
 const styles = StyleSheet.create({
   container: {
     height: '90%',
-    
-
   },
   heading: {
     color: 'white',
@@ -107,34 +107,10 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     marginTop: '20%',
   },
-  input: {
-    backgroundColor: 'white',
-    width: '80%',
-    marginVertical: 10,
-    padding: 15,
-    borderRadius: 15,
-    color: 'black'
-  },
-  text: {
-    alignSelf: 'flex-start',
-    marginLeft: '10%',
+  loading: {
+    color: 'white',
     fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
+    textAlign: 'center',
+    marginTop: 20,
   },
-  button: {
-    backgroundColor: 'rgb(255, 59, 59)',
-    padding: 15,
-    borderRadius: 5,
-    width: 200,
-    alignItems: 'center',
-    alignSelf: 'center',
-    margin: '20%'
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
- 
 });
