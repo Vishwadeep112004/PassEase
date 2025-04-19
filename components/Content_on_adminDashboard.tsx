@@ -68,10 +68,11 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
                       key={index}
                       name={user.fullname}
                       route={user.route}
-                      doc1={user.document1}  // Assuming document1 is the correct field
-                      doc2={user.document2}  // Assuming document2 is the correct field
+                      doc1={user.profilepic}    // Correct field for the PDF
+                      doc2={user.profilepdf}    // Correct field for the image
                     />
                   ))
+                  
                 ) : (
                   <Text>No users found</Text>
                 )

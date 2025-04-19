@@ -43,17 +43,31 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   const handleDocumentPickdoc = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"], // Adjust as needed
+        type: "*/*", // allow all and filter manually if needed
         copyToCacheDirectory: true
       });
   
       if (result.assets && result.assets.length > 0) {
         const file = result.assets[0];
   
+        // Log to debug mime type issues
+        console.log("Picked file:", file);
+  
+        const supportedTypes = [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ];
+  
+        if (!supportedTypes.includes(file.mimeType || "")) {
+          Alert.alert("Unsupported file", "Please upload a valid PDF or Word document.");
+          return;
+        }
+  
         setSelectedDocument({
           uri: file.uri,
           name: file.name,
-          type: file.mimeType || "application/pdf" // default MIME type
+          type: file.mimeType || "application/pdf"
         });
   
         if (Platform.OS === "android") {
@@ -66,6 +80,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
       console.log("Error picking document:", error);
     }
   };
+  
   
   const handleDocumentPickPhoto = async () => {
     try {
@@ -109,10 +124,11 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
     if (!route) return Alert.alert("Error", "Please select a route.");
     if (!photo?.uri || !photo?.name || !photo?.type) return Alert.alert("Error", "Invalid profile photo.");
     if (!selectedDocument?.uri || !selectedDocument?.name) return Alert.alert("Error", "Invalid profile document.");
-  
+    
     try {
       const formData = new FormData();
   
+      // Appending form data
       formData.append("fullname", fullName);
       formData.append("email", email);
       formData.append("password", password);
@@ -130,11 +146,12 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
         name: selectedDocument.name || 'document.pdf'
       } as any);
   
-      // Optional: Debug formData
+      // Optional: Debugging formData to see what's being sent
       for (let pair of formData.entries()) {
         console.log(`${pair[0]}:`, pair[1]);
       }
   
+      // Sending data to server
       const res = await axios.post("http://192.168.190.28:5000/api/users/register", formData, {
         headers: {
           "Content-Type": "multipart/form-data"
@@ -157,8 +174,8 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
         Alert.alert("Error", "An unexpected error occurred. Please try again.");
       }
     }
-    
   };
+  
   
   
   
