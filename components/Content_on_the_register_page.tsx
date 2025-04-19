@@ -221,7 +221,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.text}>Password:</Text>
             <TextInput
               style={styles.input}
-              placeholder='Enter your full name'
+              placeholder='Enter your Password'
               placeholderTextColor='black'
               autoCorrect={false}
               value={password}
@@ -231,7 +231,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.text}>Confirm Password:</Text>
             <TextInput
               style={styles.input}
-              placeholder='Enter your full name'
+              placeholder='Confirm your password'
               placeholderTextColor='black'
               autoCorrect={false}
               value={confirmPassword}
