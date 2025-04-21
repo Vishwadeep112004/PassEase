@@ -28,7 +28,7 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://192.168.190.28:5000/api/users/getall');  // Replace with actual backend URL
+      const response = await axios.get('http://192.168.144.28:5000/api/users/getall');  // Replace with actual backend URL
       setUserData(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);

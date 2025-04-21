@@ -30,7 +30,7 @@ const Content_on_the_login_page = ({ navigation }: Props) => {
       }
 
       const loginData = { fullname: email, password };
-      const response = await axios.post('http://192.168.190.28:5000/api/users/login', loginData);
+      const response = await axios.post('http://192.168.144.28:5000/api/users/login', loginData);
 
       if (response.data.message === 'Login successful') {
         ToastAndroid.show('Login successful!', ToastAndroid.SHORT);

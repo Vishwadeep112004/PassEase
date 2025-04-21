@@ -132,8 +132,12 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
         name: selectedDocument.name || 'document.pdf'
       } as any);
   
-     
-      navigation.navigate("Login"); 
+      const res = await axios.post("http://192.168.144.28:5000/api/users/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+  
+      const userData = res.data;
+      navigation.navigate("Login", { userData }); 
   
     } catch (error: any) {
       console.error("Register Error:", error?.response?.data || error.message);

@@ -34,9 +34,9 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
 
 
 
-  const handleScanLimitCheck = async (fullname: string) => {
+  const handleScanLimitCheck = async (fullname: string): Promise<boolean> => {
     try {
-      const response = await fetch("http://your-ip:5000/api/users/scan", {
+      const response = await fetch("http://192.168.144.28:5000/api/users/scan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -46,11 +46,22 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
   
       const data = await response.json();
   
+      // If backend says scan limit is 0, disable scan
+      if (data.scanLimit === 0) {
+        Toast.show({
+          type: 'error',
+          text1: 'Scan Disabled',
+          text2: 'Scanning is currently disabled.',
+        });
+        return false;
+      }
+      console.log("Scan Limit Data:", data);
+      
       if (response.ok) {
         Toast.show({
           type: 'success',
           text1: 'Scan Allowed',
-          text2: `Scan ${data.scanCount} of 2 done`,
+          text2: `Scan ${data.scanCount} of ${data.scanLimit} done`,
         });
         return true;
       } else {
@@ -73,7 +84,6 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
     }
   };
   
-
 
   // Common daily limiter function
   const checkDailyLimit = async (key: string, limit: number): Promise<boolean> => {
@@ -141,7 +151,7 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
   }, []);
 
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    const limitReached = await checkDailyLimit('scan', 2);
+    const limitReached = await checkDailyLimit('scan', 0);
     if (limitReached) {
       alert('You can only scan the QR code twice per day.');
       setScanDisabled(true);
@@ -169,7 +179,7 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, scanDisabled && { backgroundColor: 'gray' }]}
+        style={[styles.button,{ backgroundColor: 'gray' }]}
         onPress={async () => {
           const allowed = await handleScanLimitCheck(name);
           if (allowed) {
