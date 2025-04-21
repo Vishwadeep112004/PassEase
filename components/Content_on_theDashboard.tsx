@@ -36,26 +36,27 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
 
   const handleScanLimitCheck = async (fullname: string): Promise<boolean> => {
     try {
-      const response = await fetch("http://192.168.144.28:5000/api/users/scan", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ fullname })
-      });
+        const response = await fetch("http://192.168.144.28:5000/api/users/scan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ fullname })
+        });
   
       const data = await response.json();
   
       // If backend says scan limit is 0, disable scan
-      if (data.scanLimit === 0) {
+      if (data.scanCount === 0) {
         Toast.show({
           type: 'error',
           text1: 'Scan Disabled',
           text2: 'Scanning is currently disabled.',
+
         });
+        setScanDisabled(true);
         return false;
       }
-      console.log("Scan Limit Data:", data);
       
       if (response.ok) {
         Toast.show({
@@ -144,26 +145,17 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
-
-      const limitReached = await checkDailyLimit('scan', 2);
-      if (limitReached) setScanDisabled(true);
     })();
   }, []);
 
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    const limitReached = await checkDailyLimit('scan', 0);
-    if (limitReached) {
-      alert('You can only scan the QR code twice per day.');
-      setScanDisabled(true);
-      setModalVisible(false);
-      return;
-    }
-
-    await incrementDailyCount('scan');
-    setScanned(true);
-    setModalVisible(false);
+    setScanned(true); // Prevent duplicate scans
+    setModalVisible(false); // Close the scanner
+  
+    // Do something with scanned data, like show it or navigate
     alert(`Scanned QR code: ${data}`);
   };
+ 
 
   if (hasPermission === null) return <Text>Requesting permission...</Text>;
   if (hasPermission === false) return <Text>No access to camera</Text>;
@@ -179,7 +171,7 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
       </View>
 
       <TouchableOpacity
-        style={[styles.button,{ backgroundColor: 'gray' }]}
+        style={[styles.button, scanDisabled && { backgroundColor: 'gray' }]}
         onPress={async () => {
           const allowed = await handleScanLimitCheck(name);
           if (allowed) {
