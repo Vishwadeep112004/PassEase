@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert, 
-  KeyboardAvoidingView, 
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
   ScrollView,
-  Platform 
+  Platform,
+  ToastAndroid
 } from 'react-native';
-
 import { NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
@@ -25,21 +25,26 @@ const Content_on_the_login_page = ({ navigation }: Props) => {
 
   const handleLogin = async () => {
     try {
-      // Validate input fields
       if (!email || !password) {
         return Alert.alert('Error', 'Please enter both email and password');
       }
 
-      // Prepare the data for login
       const loginData = { fullname: email, password };
-
-      // Send login request to the backend
       const response = await axios.post('http://192.168.190.28:5000/api/users/login', loginData);
 
       if (response.data.message === 'Login successful') {
-        // Navigate to Dashboard on successful login
-        Alert.alert('Success', 'Login successful!');
-        navigation.navigate("Dashboard"); // Redirect to Dashboard after successful login
+        ToastAndroid.show('Login successful!', ToastAndroid.SHORT);
+
+        const userData = response.data.user;
+
+        navigation.navigate('Dashboard', {
+          user: {
+            name: userData.fullname,
+            state: userData.state,
+            daysLeft: userData.daysLeft,
+            route: userData.route
+          }
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -48,38 +53,32 @@ const Content_on_the_login_page = ({ navigation }: Props) => {
   };
 
   return (
-    <LinearGradient 
-      colors={['#2980B9', '#89253e']} 
-      style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-    >
+    <LinearGradient colors={['#2980B9', '#89253e']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 2 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           <Text style={styles.heading}>LOGIN</Text>
-          
           <View style={styles.formContainer}>
-            <Text style={styles.text}>Enter user mail:</Text>
-            <TextInput 
+            <Text style={styles.text}>Full Name:</Text>
+            <TextInput
               style={styles.input}
-              placeholder='Enter the mail'
-              placeholderTextColor='black'
-              autoCorrect={false}
+              placeholder="Enter your full name"
+              placeholderTextColor="black"
               value={email}
-              onChangeText={setEmail} // Bind email field
+              onChangeText={setEmail}
             />
-            
+
             <Text style={styles.text}>Password:</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
-              placeholder='Enter the Password'
-              placeholderTextColor='black'
+              placeholder="Enter your password"
+              placeholderTextColor="black"
               secureTextEntry
-              autoCorrect={false}
               value={password}
-              onChangeText={setPassword} // Bind password field
+              onChangeText={setPassword}
             />
           </View>
 

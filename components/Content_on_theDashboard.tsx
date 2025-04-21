@@ -1,91 +1,188 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, Modal } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { NavigationProp } from "@react-navigation/native";
+import { NavigationProp, RouteProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Camera, CameraView } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
+type RootStackParamList = {
+  Dashboard: {
+    user: {
+      name: string;
+      state: string;
+      daysLeft: number;
+      route: string;
+    };
+  };
+};
 
 type Props = {
   navigation: NavigationProp<any>;
+  route: RouteProp<RootStackParamList, 'Dashboard'>;
 };
 
-const Content_on_theDashboard = ({ navigation }: Props) => {
-  const [name, setName] = useState("shahid Mulani");
-  const [state, setState] = useState("Active");
-  const [days, setDays] = useState("30");
-  const [route, setRoute] = useState("Kolhapur to Sangli");
+const Content_on_theDashboard = ({ navigation, route }: Props) => {
+  const [name, setName] = useState("Loading...");
+  const [state, setState] = useState("Loading...");
+  const [days, setDays] = useState("Loading...");
+  const [routeName, setRouteName] = useState("Loading...");
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [scanDisabled, setScanDisabled] = useState(false);
 
+
+
+  const handleScanLimitCheck = async (fullname: string) => {
+    try {
+      const response = await fetch("http://your-ip:5000/api/users/scan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ fullname })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Toast.show({
+          type: 'success',
+          text1: 'Scan Allowed',
+          text2: `Scan ${data.scanCount} of 2 done`,
+        });
+        return true;
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Limit Reached',
+          text2: data.error || 'Scan not allowed.',
+        });
+        return false;
+      }
+  
+    } catch (err) {
+      console.error("Backend Scan Check Error:", err);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Unable to verify scan limit',
+      });
+      return false;
+    }
+  };
+  
+
+
+  // Common daily limiter function
+  const checkDailyLimit = async (key: string, limit: number): Promise<boolean> => {
+    const today = new Date().toISOString().split('T')[0];
+    const storedDate = await AsyncStorage.getItem(`${key}Date`);
+    let count = parseInt((await AsyncStorage.getItem(`${key}Count`)) || '0');
+
+    if (storedDate !== today) {
+      await AsyncStorage.setItem(`${key}Date`, today);
+      await AsyncStorage.setItem(`${key}Count`, '0');
+      return false;
+    }
+
+    if (count >= limit) return true;
+    return false;
+  };
+
+  const incrementDailyCount = async (key: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    let count = parseInt((await AsyncStorage.getItem(`${key}Count`)) || '0');
+    count += 1;
+    await AsyncStorage.setItem(`${key}Count`, count.toString());
+    await AsyncStorage.setItem(`${key}Date`, today);
+  };
+
+  useEffect(() => {
+    if (route.params && route.params.user) {
+      const { name, state, route: userRoute } = route.params.user;
+      setName(name);
+      setState(state);
+      setRouteName(userRoute);
+    }
+  }, [route.params]);
+
+  useEffect(() => {
+    const handleDaysLeftUpdate = async () => {
+      if (route.params && route.params.user) {
+        let { daysLeft } = route.params.user;
+        const limitReached = await checkDailyLimit('days', 1);
+
+        if (!limitReached) {
+          if (daysLeft > 0) daysLeft -= 1;
+          await AsyncStorage.setItem('userDaysLeft', daysLeft.toString());
+          await incrementDailyCount('days');
+        } else {
+          const storedDays = await AsyncStorage.getItem('userDaysLeft');
+          if (storedDays) daysLeft = parseInt(storedDays);
+        }
+
+        setDays(daysLeft.toString());
+      }
+    };
+
+    handleDaysLeftUpdate();
+  }, [route.params]);
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
-  
-      const today = new Date().toISOString().split('T')[0];
-      const storedDate = await AsyncStorage.getItem('lastScanDate');
-      const scanCount = parseInt((await AsyncStorage.getItem('scanCount')) || '0');
-  
-      if (storedDate === today && scanCount >= 2) {
-        setScanDisabled(true);
-      }
+
+      const limitReached = await checkDailyLimit('scan', 2);
+      if (limitReached) setScanDisabled(true);
     })();
   }, []);
-  
 
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    const today = new Date().toISOString().split('T')[0];
-    const storedDate = await AsyncStorage.getItem('lastScanDate');
-    let scanCount = parseInt((await AsyncStorage.getItem('scanCount')) || '0');
-  
-    if (storedDate !== today) {
-      scanCount = 0;
-      await AsyncStorage.setItem('lastScanDate', today);
-      await AsyncStorage.setItem('scanCount', '0');
-    }
-  
-    if (scanCount >= 2) {
+    const limitReached = await checkDailyLimit('scan', 2);
+    if (limitReached) {
       alert('You can only scan the QR code twice per day.');
       setScanDisabled(true);
       setModalVisible(false);
       return;
     }
-  
-    scanCount += 1;
-    await AsyncStorage.setItem('scanCount', scanCount.toString());
-    await AsyncStorage.setItem('lastScanDate', today);
-  
+
+    await incrementDailyCount('scan');
     setScanned(true);
     setModalVisible(false);
     alert(`Scanned QR code: ${data}`);
   };
-  
+
   if (hasPermission === null) return <Text>Requesting permission...</Text>;
   if (hasPermission === false) return <Text>No access to camera</Text>;
 
   return (
-    <LinearGradient colors={['#2980B9', '#ffffff']} style={styles.mainContainer}>
+    <LinearGradient colors={['#2980B9', '#89253e']} style={styles.mainContainer}>
       <View style={styles.Container}>
         <Image source={require("../app/images/person.jpg")} style={styles.Image} />
         <View style={styles.infoContainer}><Text style={styles.Text}>State: {state}</Text></View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Name: {name}</Text></View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Days left: {days}</Text></View>
-        <View style={styles.infoContainer}><Text style={styles.Text}>Valid route: {route}</Text></View>
+        <View style={styles.infoContainer}><Text style={styles.Text}>Valid route: {routeName}</Text></View>
       </View>
 
       <TouchableOpacity
-            style={[styles.button, scanDisabled && { backgroundColor: 'gray' }]}
-            onPress={() => { setModalVisible(true); setScanned(false); }}
-            disabled={scanDisabled}
-            >
-            <Text style={styles.buttonText}>
-                {scanDisabled ? "Limit Reached" : "Scan QR"}
-            </Text>
+        style={[styles.button, scanDisabled && { backgroundColor: 'gray' }]}
+        onPress={async () => {
+          const allowed = await handleScanLimitCheck(name);
+          if (allowed) {
+            setModalVisible(true);
+            setScanned(false);
+          }
+        }}
+        disabled={scanDisabled}
+        >
+        <Text style={styles.buttonText}>
+          {scanDisabled ? "Limit Reached" : "Scan QR"}
+        </Text>
       </TouchableOpacity>
-
 
       <Modal visible={modalVisible} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
@@ -169,7 +266,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: '#8A2BE2',
+    backgroundColor: '#00BFFF',
     position: 'absolute',
     bottom: 0,
     width: '100%',

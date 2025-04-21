@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   StyleSheet, 
@@ -10,7 +9,8 @@ import {
   KeyboardAvoidingView, 
   ScrollView,
   Platform,
-  ToastAndroid
+  ToastAndroid,
+  ActivityIndicator
 } from 'react-native';
 
 import * as DocumentPicker from 'expo-document-picker';
@@ -37,84 +37,70 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [photo, setPhoto] = useState<any>(null);
   const [email, setEmail] = useState('');
-
-
+  const [loading, setLoading] = useState(false);
 
   const handleDocumentPickdoc = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*", // allow all and filter manually if needed
+        type: "*/*",
         copyToCacheDirectory: true
       });
-  
+
       if (result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-  
-        // Log to debug mime type issues
-        console.log("Picked file:", file);
-  
+
         const supportedTypes = [
           "application/pdf",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ];
-  
+
         if (!supportedTypes.includes(file.mimeType || "")) {
           Alert.alert("Unsupported file", "Please upload a valid PDF or Word document.");
           return;
         }
-  
+
         setSelectedDocument({
           uri: file.uri,
           name: file.name,
           type: file.mimeType || "application/pdf"
         });
-  
-        if (Platform.OS === "android") {
-          ToastAndroid.show("Document uploaded successfully!", ToastAndroid.SHORT);
-        } else {
-          Alert.alert("Success", "Document uploaded successfully!");
-        }
+
+        Platform.OS === "android"
+          ? ToastAndroid.show("Document uploaded successfully!", ToastAndroid.SHORT)
+          : Alert.alert("Success", "Document uploaded successfully!");
       }
     } catch (error) {
       console.log("Error picking document:", error);
     }
   };
-  
-  
+
   const handleDocumentPickPhoto = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/*"], // or use ["*/*"] for all types
+        type: ["image/*"],
         copyToCacheDirectory: true
       });
-  
+
       if (result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-  
+
         setPhoto({
           uri: file.uri,
           name: file.name,
-          type: file.mimeType || "image/jpeg" 
+          type: file.mimeType || "image/jpeg"
         });
-  
-        if (Platform.OS === "android") {
-          ToastAndroid.show("Photo uploaded successfully!", ToastAndroid.SHORT);
-        } else {
-          Alert.alert("Success", "Photo uploaded successfully!");
-        }
+
+        Platform.OS === "android"
+          ? ToastAndroid.show("Photo uploaded successfully!", ToastAndroid.SHORT)
+          : Alert.alert("Success", "Photo uploaded successfully!");
       }
     } catch (error) {
       console.log("Error picking photo:", error);
     }
   };
-  
-
-
- 
 
   const registerUser = async () => {
-    // Client-side validations
     if (!fullName) return Alert.alert("Error", "Please enter your full name.");
     if (!email) return Alert.alert("Error", "Please enter your email.");
     if (!email.includes('@')) return Alert.alert("Error", "Enter a valid email.");
@@ -124,11 +110,11 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
     if (!route) return Alert.alert("Error", "Please select a route.");
     if (!photo?.uri || !photo?.name || !photo?.type) return Alert.alert("Error", "Invalid profile photo.");
     if (!selectedDocument?.uri || !selectedDocument?.name) return Alert.alert("Error", "Invalid profile document.");
-    
-    try {
-      const formData = new FormData();
   
-      // Appending form data
+    try {
+      setLoading(true);
+  
+      const formData = new FormData();
       formData.append("fullname", fullName);
       formData.append("email", email);
       formData.append("password", password);
@@ -146,24 +132,16 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
         name: selectedDocument.name || 'document.pdf'
       } as any);
   
-      // Optional: Debugging formData to see what's being sent
-      for (let pair of formData.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-  
-      // Sending data to server
       const res = await axios.post("http://192.168.190.28:5000/api/users/register", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
+        headers: { "Content-Type": "multipart/form-data" }
       });
   
-      Alert.alert("Success", "User Registered!");
-      navigation.navigate("Dashboard");
+      const userData = res.data;
+      navigation.navigate("Login"); 
   
     } catch (error: any) {
       console.error("Register Error:", error?.response?.data || error.message);
-    
+  
       if (error.response) {
         const msg = error.response.data?.message 
                     || (typeof error.response.data === "string" ? error.response.data : "Invalid input or file format.");
@@ -173,14 +151,12 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
       } else {
         Alert.alert("Error", "An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
   
-  
-  
-  
 
-  
   return (
     <LinearGradient colors={['#2980B9', '#89253e']} style={{ flex: 1 }}>
       <KeyboardAvoidingView
@@ -191,7 +167,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
         <ScrollView contentContainerStyle={{ flexGrow: 4 }} keyboardShouldPersistTaps="handled">
           <Text style={styles.heading}>REGISTER</Text>
           <View style={styles.formContainer}>
-          <Text style={styles.text}>Full Name:</Text>
+            <Text style={styles.text}>Full Name:</Text>
             <TextInput
               style={styles.input}
               placeholder='Enter your full name'
@@ -267,16 +243,19 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
             {selectedDocument && <Text style={styles.selectedFileText}>{selectedDocument.name}</Text>}
           </View>
-          
-          <TouchableOpacity style={styles.button} onPress={registerUser}>
-            <Text style={styles.buttonText}>Register</Text>
-          </TouchableOpacity>
+
+          {loading ? (
+            <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={registerUser}>
+              <Text style={styles.buttonText}>Register</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -349,7 +328,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-
 
 export default Content_on_the_register_page;

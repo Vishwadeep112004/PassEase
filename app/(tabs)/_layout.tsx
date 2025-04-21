@@ -1,7 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { NavigationContainer } from "@react-navigation/native";
 import Content_on_the_landing_page from "@/components/Content_on_the_landing_page";
 import Content_on_the_login_page from "@/components/Content_on_the_login_page";
 import Content_on_the_register_page from "@/components/Content_on_the_register_page";
