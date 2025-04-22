@@ -43,10 +43,12 @@ const styles = StyleSheet.create({
     marginTop: "-17%",
     height: 400,
     width: 400,
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
-    height: "100%",
-    width: "100%",
+    height: "80%",
+    width: "80%",
     resizeMode: "contain",
   },
   button: {

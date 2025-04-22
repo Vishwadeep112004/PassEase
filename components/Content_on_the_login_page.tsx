@@ -42,7 +42,8 @@ const Content_on_the_login_page = ({ navigation }: Props) => {
             name: userData.fullname,
             state: userData.state,
             daysLeft: userData.daysLeft,
-            route: userData.route
+            route: userData.route,
+            paid: userData.paid
           }
         });
       }

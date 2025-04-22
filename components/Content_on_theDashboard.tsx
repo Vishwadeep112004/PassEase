@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { NavigationProp, RouteProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Camera, CameraView } from 'expo-camera';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
 type RootStackParamList = {
@@ -13,6 +12,7 @@ type RootStackParamList = {
       state: string;
       daysLeft: number;
       route: string;
+      paid: boolean;
     };
   };
 };
@@ -24,15 +24,65 @@ type Props = {
 
 const Content_on_theDashboard = ({ navigation, route }: Props) => {
   const [name, setName] = useState("Loading...");
-  const [state, setState] = useState("Loading...");
+  const [state, setState] = useState("Active");
   const [days, setDays] = useState("Loading...");
   const [routeName, setRouteName] = useState("Loading...");
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [scanDisabled, setScanDisabled] = useState(false);
+  const [scanDisabled, setScanDisabled] = useState(true);
+  const [paid, setPaid] = useState(false);
 
-
+  const check = async () => {
+    try {
+      const response = await fetch("http://192.168.144.28:5000/api/users/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullname: name // using the name state variable
+        })
+      });
+  
+      const data = await response.json();
+  
+      console.log(data);
+  
+      if (!response.ok) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error fetching status',
+          text2: data.error || 'Something went wrong while fetching status.'
+        });
+        return;
+      }
+  
+      const { paidStatus, daysLeft } = data;
+  
+      if (paidStatus === true) {
+        setPaid(true);
+        setScanDisabled(false);
+      } else if (daysLeft === 0) {
+        setPaid(false);
+        setScanDisabled(true);
+        Toast.show({
+          type: 'error',
+          text1: 'Scan Disabled',
+          text2: 'Scanning is currently disabled. Please complete the payment.'
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Unable to fetch status from the backend.'
+      });
+    }
+  };
+  
+  
 
   const handleScanLimitCheck = async (fullname: string): Promise<boolean> => {
     try {
@@ -52,7 +102,6 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
           type: 'error',
           text1: 'Scan Disabled',
           text2: 'Scanning is currently disabled.',
-
         });
         setScanDisabled(true);
         return false;
@@ -86,60 +135,42 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
   };
   
 
-  // Common daily limiter function
-  const checkDailyLimit = async (key: string, limit: number): Promise<boolean> => {
-    const today = new Date().toISOString().split('T')[0];
-    const storedDate = await AsyncStorage.getItem(`${key}Date`);
-    let count = parseInt((await AsyncStorage.getItem(`${key}Count`)) || '0');
-
-    if (storedDate !== today) {
-      await AsyncStorage.setItem(`${key}Date`, today);
-      await AsyncStorage.setItem(`${key}Count`, '0');
-      return false;
-    }
-
-    if (count >= limit) return true;
-    return false;
-  };
-
-  const incrementDailyCount = async (key: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    let count = parseInt((await AsyncStorage.getItem(`${key}Count`)) || '0');
-    count += 1;
-    await AsyncStorage.setItem(`${key}Count`, count.toString());
-    await AsyncStorage.setItem(`${key}Date`, today);
-  };
-
+  
   useEffect(() => {
     if (route.params && route.params.user) {
-      const { name, state, route: userRoute } = route.params.user;
+      const { name, daysLeft, paid, route: userRoute } = route.params.user;
       setName(name);
-      setState(state);
+      setDays(daysLeft.toString());
       setRouteName(userRoute);
+      setPaid(paid); 
     }
   }, [route.params]);
+  
 
-  useEffect(() => {
-    const handleDaysLeftUpdate = async () => {
-      if (route.params && route.params.user) {
-        let { daysLeft } = route.params.user;
-        const limitReached = await checkDailyLimit('days', 1);
 
-        if (!limitReached) {
-          if (daysLeft > 0) daysLeft -= 1;
-          await AsyncStorage.setItem('userDaysLeft', daysLeft.toString());
-          await incrementDailyCount('days');
-        } else {
-          const storedDays = await AsyncStorage.getItem('userDaysLeft');
-          if (storedDays) daysLeft = parseInt(storedDays);
-        }
 
-        setDays(daysLeft.toString());
+  const fetchDaysLeft = async (fullname: string) => {
+    try {
+      const response = await fetch("http://192.168.144.28:5000/api/users/daysleft", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ fullname })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setDays(data.daysLeft.toString()); // update your UI
+      } else {
+        console.error(data.error || 'Error fetching days left');
       }
-    };
-
-    handleDaysLeftUpdate();
-  }, [route.params]);
+    } catch (error) {
+      console.error('Failed to fetch daysLeft:', error);
+    }
+  };
+  
 
   useEffect(() => {
     (async () => {
@@ -171,7 +202,10 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, scanDisabled && { backgroundColor: 'gray' }]}
+        style={[
+          styles.button,
+          (scanDisabled || !paid) && { backgroundColor: 'gray' }
+        ]}        
         onPress={async () => {
           const allowed = await handleScanLimitCheck(name);
           if (allowed) {
@@ -185,6 +219,17 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
           {scanDisabled ? "Limit Reached" : "Scan QR"}
         </Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, paid && { backgroundColor: 'gray' }]}
+        onPress={check}
+        disabled={paid}
+        >
+        <Text style={styles.buttonText}>
+          {paid ? "Paid" : "Pay"}
+        </Text>
+      </TouchableOpacity>
+      
 
       <Modal visible={modalVisible} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
@@ -203,7 +248,7 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
           <Image source={require('../app/images/home2.png')} style={styles.icon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('ChatBot')}>
           <Image source={require('../app/images/profile1.png')} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
@@ -252,11 +297,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF3B3B",
     padding: 10,
     borderRadius: 10,
-    width: 150,
+    width: '40%',
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 15,
-    height: 55,
+    marginVertical: 10,
+    height: 40,
   },
   buttonText: {
     color: "black",
