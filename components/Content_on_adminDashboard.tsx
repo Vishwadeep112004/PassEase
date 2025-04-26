@@ -12,7 +12,7 @@ import {
 
 import { NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Info from './Info';  // Assuming you have an Info component
+import Info from './Info'; // Assuming you have an Info component
 import axios from 'axios';
 
 type Props = {
@@ -65,12 +65,11 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
                 userData.length > 0 ? (
                   userData.map((user, index) => (
                     <Info
-                      key={index}
                       name={user.fullname}
                       route={user.route}
-                      doc1={user.profilepic}    // Correct field for the PDF
-                      doc2={user.profilepdf}    // Correct field for the image
-                    />
+                      doc1={user.profilepic} // Correct field for the PDF
+                      doc2={user.profilepdf} // Correct field for the image
+                      userId={`${index}`}                    />
                   ))
                   
                 ) : (

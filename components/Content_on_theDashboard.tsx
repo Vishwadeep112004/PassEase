@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Modal, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { NavigationProp, RouteProp } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
-import { Camera, CameraView } from 'expo-camera';
-import Toast from 'react-native-toast-message';
+import { CameraView } from 'expo-camera';
+
+import { PermissionsAndroid } from 'react-native';
+import axios from 'axios';
 
 type RootStackParamList = {
   Dashboard: {
@@ -23,173 +25,144 @@ type Props = {
 };
 
 const Content_on_theDashboard = ({ navigation, route }: Props) => {
+
   const [name, setName] = useState("Loading...");
-  const [state, setState] = useState("Active");
+  const [state, setState] = useState("Loading...");
   const [days, setDays] = useState("Loading...");
   const [routeName, setRouteName] = useState("Loading...");
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [scanDisabled, setScanDisabled] = useState(true);
   const [paid, setPaid] = useState(false);
+  const [scanCount, setScanCount] = useState(0);
+  const [verified, setVerified] = useState(true); // Default true for existing users
+  const [verificationModal, setVerificationModal] = useState(false);
 
-  const check = async () => {
+
+
+// Initial fetch on load
+useEffect(() => {
+  let interval: NodeJS.Timeout;
+
+  const fetchUserData = async () => {
+    if (!route.params?.user?.name) return;
+    const fullname = route.params.user.name;
+    setName(fullname);
+
     try {
       const response = await fetch("http://192.168.144.28:5000/api/users/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          fullname: name // using the name state variable
-        })
-      });
-  
-      const data = await response.json();
-  
-      console.log(data);
-  
-      if (!response.ok) {
-        Toast.show({
-          type: 'error',
-          text1: 'Error fetching status',
-          text2: data.error || 'Something went wrong while fetching status.'
-        });
-        return;
-      }
-  
-      const { paidStatus, daysLeft } = data;
-  
-      if (paidStatus === true) {
-        setPaid(true);
-        setScanDisabled(false);
-      } else if (daysLeft === 0) {
-        setPaid(false);
-        setScanDisabled(true);
-        Toast.show({
-          type: 'error',
-          text1: 'Scan Disabled',
-          text2: 'Scanning is currently disabled. Please complete the payment.'
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      Toast.show({
-        type: 'error',
-        text1: 'Network Error',
-        text2: 'Unable to fetch status from the backend.'
-      });
-    }
-  };
-  
-  
-
-  const handleScanLimitCheck = async (fullname: string): Promise<boolean> => {
-    try {
-        const response = await fetch("http://192.168.144.28:5000/api/users/scan", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ fullname })
-        });
-  
-      const data = await response.json();
-  
-      // If backend says scan limit is 0, disable scan
-      if (data.scanCount === 0) {
-        Toast.show({
-          type: 'error',
-          text1: 'Scan Disabled',
-          text2: 'Scanning is currently disabled.',
-        });
-        setScanDisabled(true);
-        return false;
-      }
-      
-      if (response.ok) {
-        Toast.show({
-          type: 'success',
-          text1: 'Scan Allowed',
-          text2: `Scan ${data.scanCount} of ${data.scanLimit} done`,
-        });
-        return true;
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Limit Reached',
-          text2: data.error || 'Scan not allowed.',
-        });
-        return false;
-      }
-  
-    } catch (err) {
-      console.error("Backend Scan Check Error:", err);
-      Toast.show({
-        type: 'error',
-        text1: 'Network Error',
-        text2: 'Unable to verify scan limit',
-      });
-      return false;
-    }
-  };
-  
-
-  
-  useEffect(() => {
-    if (route.params && route.params.user) {
-      const { name, daysLeft, paid, route: userRoute } = route.params.user;
-      setName(name);
-      setDays(daysLeft.toString());
-      setRouteName(userRoute);
-      setPaid(paid); 
-    }
-  }, [route.params]);
-  
-
-
-
-  const fetchDaysLeft = async (fullname: string) => {
-    try {
-      const response = await fetch("http://192.168.144.28:5000/api/users/daysleft", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({ fullname })
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
-        setDays(data.daysLeft.toString()); // update your UI
+        setPaid(data.paid);
+        setDays(data.daysLeft?.toString());
+        setRouteName(data.route);
+        setScanCount(data.scanCount);
+        setVerified(data.isVerified);
+        if (!data.isVerified) {
+          setVerificationModal(true); 
+        } else {
+          setVerificationModal(false); 
+        }
+        if (data.scanCount <= 0 || !data.paid) {
+          setScanDisabled(true);
+        } else {
+          console.log("Scan count:", data.scanCount);
+          setScanDisabled(false);
+        }
       } else {
-        console.error(data.error || 'Error fetching days left');
+        console.error("Error:", data.error);
       }
+
     } catch (error) {
-      console.error('Failed to fetch daysLeft:', error);
+      console.error("Fetch error:", error);
+    }
+  };
+
+  fetchUserData();
+  interval = setInterval(fetchUserData, 3000);
+  return () => clearInterval(interval);
+}, [route.params?.user?.name]); 
+
+  useEffect(() => {
+    const requestPermission = async () => {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Camera permission granted');
+      } else {
+        console.log('Camera permission denied');
+      }
+    };
+  
+    requestPermission();
+  }, []);
+
+
+  const handleBarcodeScanned = async () => {
+    setScanned(true);
+    setModalVisible(false); 
+    alert('QR code scanned');
+    await scanUser();
+    
+
+  };
+
+  const scanUser = async () => {
+    if (name === "Loading...") return;
+  
+    try {
+      const response = await axios.post('http://192.168.144.28:5000/api/users/scan', { fullname: name });
+  
+      if (response.status === 200) {
+        console.log('Scan successful');
+  
+        if (response.data.scanCount === 0) {
+          setScanDisabled(true);
+        }
+      }
+    } catch (error: any) {
+      if (error.response && error.response.status === 403) {
+        console.error('No scans left');
+        setScanDisabled(true);
+      } else if (error.response) {
+        console.error('Scan failed:', error.response.data.error);
+      } else {
+        console.error('Scan error:', error.message);
+      }
+    } finally {
+      setModalVisible(false);
+    }
+  };
+
+  const handlePaid = async () => {
+    console.log(name);
+    try {
+      const response = await axios.post('http://192.168.144.28:5000/api/users/paid', {
+        fullname: name, // pass user's fullname
+      });
+  
+      if (response.status === 200) {
+        Alert.alert('Success', 'Payment status updated successfully');
+        setScanDisabled(false);
+        setPaid(true);// if you want to close any modal after paid
+      }
+    } catch (error: any) {
+      console.error('Payment update failed:', error.response?.data?.error || error.message);
+      Alert.alert('Error', 'Failed to update payment status');
     }
   };
   
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
 
-  const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    setScanned(true); // Prevent duplicate scans
-    setModalVisible(false); // Close the scanner
-  
-    // Do something with scanned data, like show it or navigate
-    alert(`Scanned QR code: ${data}`);
-  };
- 
-
-  if (hasPermission === null) return <Text>Requesting permission...</Text>;
-  if (hasPermission === false) return <Text>No access to camera</Text>;
 
   return (
     <LinearGradient colors={['#2980B9', '#89253e']} style={styles.mainContainer}>
@@ -202,47 +175,68 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
       </View>
 
       <TouchableOpacity
-        style={[
-          styles.button,
-          (scanDisabled || !paid) && { backgroundColor: 'gray' }
-        ]}        
-        onPress={async () => {
-          const allowed = await handleScanLimitCheck(name);
-          if (allowed) {
-            setModalVisible(true);
-            setScanned(false);
-          }
-        }}
+        style={[styles.button, { backgroundColor: scanDisabled ? '#ccc' : '#FF3B3B' }]}
+        onPress={() => setModalVisible(true)}
         disabled={scanDisabled}
-        >
-        <Text style={styles.buttonText}>
-          {scanDisabled ? "Limit Reached" : "Scan QR"}
-        </Text>
+      >
+        <Text style={styles.buttonText}>Scan QR</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, paid && { backgroundColor: 'gray' }]}
-        onPress={check}
-        disabled={paid}
-        >
+        style={[styles.button, { backgroundColor: paid ? '#ccc' : '#FF3B3B' }]}
+          onPress={() => {handlePaid()}}
+      >                      
         <Text style={styles.buttonText}>
-          {paid ? "Paid" : "Pay"}
+          Paid
         </Text>
       </TouchableOpacity>
-      
 
+{/* this modal is for camera view */}
       <Modal visible={modalVisible} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
           <CameraView
             style={StyleSheet.absoluteFill}
             barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-            onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+            onBarcodeScanned={handleBarcodeScanned}
           />
           <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
             <Text style={styles.closeText}>Close</Text>
           </TouchableOpacity>
+
+          
+
         </View>
       </Modal>
+
+
+
+{/* this is the modal for verification pending */}
+      <Modal
+        visible={verificationModal}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.verificationModalContainer}>
+          <View style={styles.verificationModalContent}>
+            <Text style={styles.verificationText}>
+              Your verification is pending, please wait...
+            </Text>
+
+            {/* Add BACK Button here */}
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.reset({
+                index: 0,
+                routes: [{ name: 'Landing' }],
+              })}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
+
 
       <View style={styles.NavBar}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
@@ -262,6 +256,38 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
 export default Content_on_theDashboard;
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  
+  verificationModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verificationModalContent: {
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  verificationText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
+  },
+  
   mainContainer: {
     flex: 1,
     alignItems: "center",

@@ -21,8 +21,10 @@ const Layout = () => {
         <Stack.Screen name="Dashboard" component={Content_on_theDashboard} />
         <Stack.Screen name="ChatBot" component={ChatBot} />
         <Stack.Screen name="adminlogin" component={Content_on_the_adminLogin} />    
-        <Stack.Screen name="adminDashboard" component={Content_on_adminDashboard} />    
+        <Stack.Screen name="adminDashboard" component={Content_on_adminDashboard} />        
       </Stack.Navigator>
+     
+
     
   );
 };

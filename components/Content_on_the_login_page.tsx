@@ -39,11 +39,7 @@ const Content_on_the_login_page = ({ navigation }: Props) => {
 
         navigation.navigate('Dashboard', {
           user: {
-            name: userData.fullname,
-            state: userData.state,
-            daysLeft: userData.daysLeft,
-            route: userData.route,
-            paid: userData.paid
+            name: userData.fullname
           }
         });
       }
