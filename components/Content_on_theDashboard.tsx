@@ -255,7 +255,7 @@ useEffect(() => {
         <View style={styles.verificationModalContainer}>
           <View style={styles.verificationModalContent}>
             <Text style={styles.verificationText}>
-             {msg!==""? "Your verification is pending, please wait..." :` youre form is rejected{\n}reason: ${msg}{\n}register again`}
+             {msg===""? "Your verification is pending, please wait..." :` your form is rejected\nreason: ${msg}\nregister again`}
             </Text>
 
             {/* Add BACK Button here */}
