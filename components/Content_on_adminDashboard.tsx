@@ -65,6 +65,7 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
                 userData.length > 0 ? (
                   userData.map((user, index) => (
                     <Info
+                      key={user._id || index}
                       name={user.fullname}
                       route={user.route}
                       doc1={user.profilepic} // Correct field for the PDF

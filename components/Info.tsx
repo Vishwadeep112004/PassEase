@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, TouchableOpacity, Button, Linking, Alert } from 'react-native';
+import { StyleSheet, Text, View, Modal, TouchableOpacity, Button, Linking, Alert, TextInput } from 'react-native'; // TextInput added
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -7,16 +7,17 @@ interface InfoProps {
   route: string;
   doc1: string;
   doc2: string;
-  userId: string; // Add userId prop
+  userId: string;
 }
 
 const Info = ({ name, route, doc1, doc2, userId }: InfoProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [rejectReason, setRejectReason] = useState(''); // New state to store rejection message
 
   const handleAccept = async () => {
     try {
       const response = await axios.post('http://192.168.144.28:5000/api/admin/verify', {
-        fullname: name, // <-- Send fullname key here
+        fullname: name,
       });
   
       if (response.status === 200) {
@@ -28,12 +29,28 @@ const Info = ({ name, route, doc1, doc2, userId }: InfoProps) => {
       Alert.alert('Error', 'Failed to verify user');
     }
   };
-  
 
-  const handleReject = () => {
-    // You can add rejection API here if needed
-    Alert.alert('Rejected', 'User has been rejected');
-    setModalVisible(false);
+  const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      Alert.alert('Error', 'Please enter a rejection reason.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://192.168.144.28:5000/api/admin/reject', {
+        fullname: name,
+        rejectMessage: rejectReason,
+      });
+
+      if (response.status === 200) {
+        Alert.alert('Rejected', 'User has been rejected successfully');
+        setModalVisible(false);
+        setRejectReason(''); // Clear after submit
+      }
+    } catch (error: any) {
+      console.error('Rejection failed:', error.response?.data?.error || error.message);
+      Alert.alert('Error', 'Failed to reject user');
+    }
   };
 
   return (
@@ -52,8 +69,8 @@ const Info = ({ name, route, doc1, doc2, userId }: InfoProps) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalName}>{name}</Text>
-            <Text style={styles.modalInfo}>Here is some information about {name}.</Text>
             <Text style={styles.modalInfo}>Route: {route}</Text>
+
             <TouchableOpacity onPress={() => Linking.openURL(doc1)}>
               <Text style={styles.linkText}>Photo</Text>
             </TouchableOpacity>
@@ -61,6 +78,15 @@ const Info = ({ name, route, doc1, doc2, userId }: InfoProps) => {
             <TouchableOpacity onPress={() => Linking.openURL(doc2)}>
               <Text style={styles.linkText}>Adhar card and bonafide certificate</Text>
             </TouchableOpacity>
+
+            {/* Input for Rejection Reason */}
+            <TextInput
+              placeholder="if form is invalid the enter rejection reason..."
+              style={styles.input}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+            />
 
             <View style={styles.modalButtons}>
               <Button title="Accept" color="green" onPress={handleAccept} />
@@ -130,5 +156,13 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 16,
     marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 8,
+    fontSize: 16,
   },
 });

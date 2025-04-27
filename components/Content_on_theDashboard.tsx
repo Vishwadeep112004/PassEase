@@ -27,7 +27,7 @@ type Props = {
 const Content_on_theDashboard = ({ navigation, route }: Props) => {
 
   const [name, setName] = useState("Loading...");
-  const [state, setState] = useState("Loading...");
+  const [state, setState] = useState("Inactive");
   const [days, setDays] = useState("Loading...");
   const [routeName, setRouteName] = useState("Loading...");
   const [scanned, setScanned] = useState(false);
@@ -37,6 +37,8 @@ const Content_on_theDashboard = ({ navigation, route }: Props) => {
   const [scanCount, setScanCount] = useState(0);
   const [verified, setVerified] = useState(true); // Default true for existing users
   const [verificationModal, setVerificationModal] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [id, setId] = useState("");
 
 
 
@@ -66,16 +68,20 @@ useEffect(() => {
         setRouteName(data.route);
         setScanCount(data.scanCount);
         setVerified(data.isVerified);
+        setMsg(data.msg);
+        setId(data._id);
         if (!data.isVerified) {
           setVerificationModal(true); 
         } else {
           setVerificationModal(false); 
         }
+        
         if (data.scanCount <= 0 || !data.paid) {
           setScanDisabled(true);
         } else {
           console.log("Scan count:", data.scanCount);
           setScanDisabled(false);
+          setState("Active");
         }
       } else {
         console.error("Error:", data.error);
@@ -115,6 +121,32 @@ useEffect(() => {
     
 
   };
+
+
+  const deleteObjectByName = async (fullname: string) => {
+    try {
+        const response = await fetch(`http://192.168.144.28:5000/api/users/delete`, {
+            method: 'POST', // POST because we send data in body
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fullname }) // Send fullname in body
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('User deleted successfully:', data);
+        } else {
+            const errorData = await response.json();
+            console.error('Error deleting user:', errorData);
+        }
+    } catch (error) {
+        console.error('Unexpected error:', error);
+    }
+};
+
+
+
 
   const scanUser = async () => {
     if (name === "Loading...") return;
@@ -168,7 +200,11 @@ useEffect(() => {
     <LinearGradient colors={['#2980B9', '#89253e']} style={styles.mainContainer}>
       <View style={styles.Container}>
         <Image source={require("../app/images/person.jpg")} style={styles.Image} />
-        <View style={styles.infoContainer}><Text style={styles.Text}>State: {state}</Text></View>
+        <View style={styles.infoContainer}>
+          <Text style={state === "Active" ? styles.activeText : styles.inactiveText}>
+            {state === "Active" ? "🟢 Active" : "🔴 Inactive"}
+          </Text>
+        </View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Name: {name}</Text></View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Days left: {days}</Text></View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Valid route: {routeName}</Text></View>
@@ -219,16 +255,22 @@ useEffect(() => {
         <View style={styles.verificationModalContainer}>
           <View style={styles.verificationModalContent}>
             <Text style={styles.verificationText}>
-              Your verification is pending, please wait...
+             {msg!==""? "Your verification is pending, please wait..." :` youre form is rejected{\n}reason: ${msg}{\n}register again`}
             </Text>
 
             {/* Add BACK Button here */}
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.reset({
-                index: 0,
-                routes: [{ name: 'Landing' }],
-              })}>
+              onPress={() => 
+                {
+                  if (msg !== "") {
+                    // Call the function to delete the object if msg is not empty
+                    deleteObjectByName(name);
+                  }
+                  navigation.reset({   
+                  index: 0,
+                  routes: [{ name: 'Landing' }],
+              })}}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
 
@@ -256,6 +298,18 @@ useEffect(() => {
 export default Content_on_theDashboard;
 
 const styles = StyleSheet.create({
+  activeText: {
+    fontSize: 18,
+    color: '#128c07', // Green text when active
+    fontWeight: 'bold',
+    padding: '5%'
+  },
+  inactiveText: {
+    fontSize: 18,
+    color: 'red', // Red text when inactive
+    fontWeight: 'bold',
+    padding: '5%'
+  },
   backButton: {
     marginTop: 20,
     paddingVertical: 10,
@@ -317,7 +371,7 @@ const styles = StyleSheet.create({
   },
   Text: {
     fontSize: 18,
-    padding: "4%",
+    padding: "5%",
   },
   button: {
     backgroundColor: "#FF3B3B",
