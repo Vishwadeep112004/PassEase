@@ -19,7 +19,7 @@ const Content_on_the_landing_page: React.FC<Props> = ({ navigation }) => {
       </View>
       <View style={styles.btnBox}>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.buttonText}>Login As Student</Text>
+          <Text style={styles.buttonText}>Login As User</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("adminlogin")}>
           <Text style={styles.buttonText}>Login As Authority</Text>
