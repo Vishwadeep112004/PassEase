@@ -91,10 +91,7 @@ const ChatBot = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.header}>
-        <Image
-          source={require('../assets/images/bot.jpeg')}
-          style={styles.avatar}
-        />
+      
         <Text style={styles.title}>PassEase Assistant</Text>
         <Text style={styles.status}>🟢 Online</Text>
       </View>

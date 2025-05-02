@@ -212,7 +212,7 @@ const faqData = [
       answer: 'Great! Let me know if you have any more questions. 😊'
     },
     {
-      keywords: ['registration', 'how', 'register'],
+      keywords: ['registration', 'how', 'register','process','sign', 'up'],
       answer: 'You can register by clicking on "Register", then entering your name, email, password and uploading required documents. After verification, you’ll be successfully registered.'
     },
     {
