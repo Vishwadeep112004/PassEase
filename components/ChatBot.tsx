@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import faqData from './data';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -20,6 +21,8 @@ type RootStackParamList = {
 };
 
 const ChatBot = () => {
+
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([
     { text: 'Hi! How can I help you today?', sender: 'bot' },
@@ -36,64 +39,50 @@ const ChatBot = () => {
     'Others',
   ];
 
+ 
+
+  const findBestMatch = (query: string) => {
+    query = query.toLowerCase().trim();
+    
+    for (const faq of faqData) {
+        // Count how many keywords match
+        const matchCount = faq.keywords.filter(keyword => query.includes(keyword)).length;
+
+        // If at least two keywords match, return the answer
+        if (matchCount >= 2) {
+            return faq.answer;
+        }
+    }
+
+    return "Sorry, I am unable to answer to your question can you visit out website";
+};
+
+  
+  
   const sendMessage = async (messageText?: string) => {
     const userMessage = (messageText || input).trim();
     if (!userMessage) return;
-
-    // Check if "Others" is selected
+  
     if (userMessage === 'Others') {
       setMessages(prev => [
         ...prev,
         { text: 'Enter the Query manually', sender: 'bot' },
       ]);
-      setInput('');  // Clear the input field
+      setInput('');
       return;
     }
-
+  
     setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
     setInput('');
-    setShowPresets(false); // Hide preset temporarily while waiting for bot response
-    setLoading(true); // Show "Typing..." message
-
-    try {
-      const response = await fetch(
-        'https://passease-conductor.cognitiveservices.azure.com/language/:query-knowledgebases?projectName=Pass-Conductor&api-version=2021-10-01&deploymentName=production',
-        {
-          method: 'POST',
-          headers: {
-            'Ocp-Apim-Subscription-Key':
-              '8i1OjJYJ0Maey9iauKeTMDM0aoyqmTdmg9xDrWdyCMAUrjSp5WLhJQQJ99BDACYeBjFXJ3w3AAAaACOGSXeP',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            top: 3,
-            question: userMessage,
-            includeUnstructuredSources: true,
-            confidenceScoreThreshold: '0.3',
-            answerSpanRequest: {
-              enable: true,
-              topAnswersWithSpan: 1,
-              confidenceScoreThreshold: '0.3',
-            },
-            filters: {},
-          }),
-        }
-      );
-
-      const data = await response.json();
-      const botReply = data.answers?.[0]?.answer || "Sorry, I couldn't find an answer.";
-
+    setShowPresets(false);
+    setLoading(true);
+  
+    setTimeout(() => {
+      const botReply = findBestMatch(userMessage);
       setMessages(prev => [...prev, { text: botReply, sender: 'bot' }]);
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [
-        ...prev,
-        { text: 'Something went wrong. Please try again later.', sender: 'bot' },
-      ]);
-    } finally {
       setLoading(false);
-      setShowPresets(true); // Show presets again after bot reply
-    }
+      setShowPresets(true);
+    }, 1000); // Simulate "typing..."
   };
 
   return (

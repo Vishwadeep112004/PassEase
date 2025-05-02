@@ -5,7 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView } from 'expo-camera';
 
 import { PermissionsAndroid } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import axios from 'axios';
+import * as Device from 'expo-device';
 
 type RootStackParamList = {
   Dashboard: {
@@ -87,6 +89,8 @@ useEffect(() => {
         console.error("Error:", data.error);
       }
 
+      
+
     } catch (error) {
       console.error("Fetch error:", error);
     }
@@ -96,6 +100,20 @@ useEffect(() => {
   interval = setInterval(fetchUserData, 3000);
   return () => clearInterval(interval);
 }, [route.params?.user?.name]); 
+
+
+if (days <= '3' && days > '0') {
+  const scheduleNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Bus Pass Reminder",
+        body: `Your bus pass will expire in ${days} day(s). Please recharge soon.`,
+      },
+      trigger: null, // sends immediately
+    });
+  };
+  scheduleNotification();
+}
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -194,6 +212,37 @@ useEffect(() => {
   };
   
 
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
+
+  
+  async function registerForPushNotificationsAsync() {
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for notifications!');
+        return;
+      }
+    } else {
+      alert('Must use physical device for push notifications');
+    }
+  
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  }
+  
+
 
 
   return (
@@ -201,8 +250,8 @@ useEffect(() => {
       <View style={styles.Container}>
         <Image source={require("../app/images/person.jpg")} style={styles.Image} />
         <View style={styles.infoContainer}>
-          <Text style={state === "Active" ? styles.activeText : styles.inactiveText}>
-            {state === "Active" ? "🟢 Active" : "🔴 Inactive"}
+          <Text style={paid==true ? styles.activeText : styles.inactiveText}>
+            {paid === true ? "🟢 Active" : "🔴 Inactive"}
           </Text>
         </View>
         <View style={styles.infoContainer}><Text style={styles.Text}>Name: {name}</Text></View>
@@ -221,9 +270,10 @@ useEffect(() => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: paid ? '#ccc' : '#FF3B3B' }]}
           onPress={() => {handlePaid()}}
+          disabled={paid}
       >                      
         <Text style={styles.buttonText}>
-          Paid
+          {paid?"Paid":"Pay"}
         </Text>
       </TouchableOpacity>
 
