@@ -73,11 +73,27 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
                       userId={`${index}`}                    />
                   ))
                   
-                ) : (
+                ):(
                   <Text>No users found</Text>
                 )
               )}
             </View>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'rgb(255, 59, 59)',
+                  width: '30%',
+                  height: 50,
+                  borderRadius: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 20,
+                  marginHorizontal:'auto'
+                }}
+                onPress={() => navigation.navigate('Chart')}
+              >
+                <Text style={{ color: 'white', fontSize: 18 }}>Chart</Text>
+              </TouchableOpacity>
+            
         </ScrollView> 
       </KeyboardAvoidingView>
     </LinearGradient>
