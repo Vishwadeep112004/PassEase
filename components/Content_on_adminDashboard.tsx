@@ -102,6 +102,36 @@ const Content_on_adminDashboard = ({ navigation }: Props) => {
 
 export default Content_on_adminDashboard;
 
+// const styles = StyleSheet.create({
+//   container: {
+//     height: '90%',
+//   },
+//   heading: {
+//     color: 'white',
+//     fontSize: 40,
+//     marginTop: '5%',
+//     alignSelf: 'center',
+//     fontWeight: 'bold',
+//     textAlign: 'center',
+//   },
+//   formContainer: {
+//     alignItems: 'center',
+//     backgroundColor: 'rgb(255, 59, 59)',
+//     width: '100%',
+//     height: '70%',
+//     borderRadius: 15,
+//     alignSelf: 'center',
+//     paddingVertical: 20,
+//     marginTop: '20%',
+//   },
+//   loading: {
+//     color: 'white',
+//     fontSize: 18,
+//     textAlign: 'center',
+//     marginTop: 20,
+//   },
+// });
+
 const styles = StyleSheet.create({
   container: {
     height: '90%',
@@ -118,16 +148,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgb(255, 59, 59)',
     width: '100%',
-    height: '70%',
+    height: 'auto',
     borderRadius: 15,
     alignSelf: 'center',
     paddingVertical: 20,
     marginTop: '20%',
+    borderWidth:2
   },
   loading: {
     color: 'white',
     fontSize: 18,
     textAlign: 'center',
     marginTop: 20,
-  },
-});
+  },});

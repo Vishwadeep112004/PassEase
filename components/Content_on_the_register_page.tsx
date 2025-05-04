@@ -103,7 +103,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   const registerUser = async () => {
     if (!fullName) return Alert.alert("Error", "Please enter your full name.");
     if (!email) return Alert.alert("Error", "Please enter your email.");
-    if (!email.includes('@')) return Alert.alert("Error", "Enter a valid email.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Alert.alert("Error", "Enter a valid email.");
     if (!password) return Alert.alert("Error", "Please enter a password.");
     if (!confirmPassword) return Alert.alert("Error", "Please confirm your password.");
     if (password !== confirmPassword) return Alert.alert("Error", "Passwords do not match.");
@@ -137,7 +137,7 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
       });
   
       const userData = res.data;
-      navigation.navigate("Login", { userData }); 
+      navigation.navigate("Login",); 
   
     } catch (error: any) {
       console.error("Register Error:", error?.response?.data || error.message);
@@ -257,6 +257,80 @@ const Content_on_the_register_page: React.FC<Props> = ({ navigation }) => {
   );
 };
 
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     marginTop: '10%',
+//   },
+//   heading: {
+//     color: 'white',
+//     fontSize: 35,
+//     marginTop: '5%',
+//     alignSelf: 'center',
+//     fontWeight: 'bold',
+//   },
+//   formContainer: {
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: 'rgb(255, 59, 59)',
+//     width: '85%',
+//     borderRadius: 15,
+//     alignSelf: 'center',
+//     marginTop: '5%',
+//   },
+//   input: {
+//     backgroundColor: 'white',
+//     width: '80%',
+//     marginVertical: 3,
+//     padding: 15,
+//     borderRadius: 15,
+//     color: 'black',
+//   },
+//   text: {
+//     alignSelf: 'flex-start',
+//     marginLeft: '10%',
+//     fontSize: 18,
+//     fontWeight: 'bold',
+//     color: 'white',
+//     marginTop: 10, 
+//     marginBottom: 0,
+//   },
+//   button: {
+//     backgroundColor: 'rgb(255, 59, 59)',
+//     padding: 15,
+//     borderRadius: 5,
+//     width: 200,
+//     alignItems: 'center',
+//     alignSelf: 'center',
+//     margin: '5%',
+//   },
+//   buttonText: {
+//     color: 'white',
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//   },
+//   buttonText2: {
+//     color: 'black',
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//   },
+//   uploadButton: {
+//     backgroundColor: 'white',
+//     padding: 10,
+//     borderRadius: 5,
+//     alignItems: 'center',
+//     marginVertical: 10,
+//     width: '80%',
+//   },
+//   selectedFileText: {
+//     color: 'white',
+//     marginTop: 5,
+//     fontSize: 14,
+//   },
+// });
+
+// regis
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -265,7 +339,7 @@ const styles = StyleSheet.create({
   heading: {
     color: 'white',
     fontSize: 35,
-    marginTop: '5%',
+    marginTop: '3%',
     alignSelf: 'center',
     fontWeight: 'bold',
   },
@@ -277,6 +351,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignSelf: 'center',
     marginTop: '5%',
+    padding:15,
+    borderWidth:2
   },
   input: {
     backgroundColor: 'white',
@@ -298,7 +374,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'rgb(255, 59, 59)',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 15,
+    borderWidth:1.5,
     width: 200,
     alignItems: 'center',
     alignSelf: 'center',
@@ -330,3 +407,5 @@ const styles = StyleSheet.create({
 });
 
 export default Content_on_the_register_page;
+
+

@@ -103,7 +103,7 @@ export default Info;
 
 const styles = StyleSheet.create({
   container: {
-    height: '10%',
+    height: '25%',
     width: '90%',
     backgroundColor: 'white',
     borderRadius: 15,

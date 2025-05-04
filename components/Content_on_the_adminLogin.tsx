@@ -54,7 +54,7 @@ const Content_on_the_adminLogin = ({ navigation }: Props) => {
           contentContainerStyle={{ flexGrow: 2 }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.heading}>LOGIN</Text>
+          <Text style={styles.heading}>AUTHOR LOGIN</Text>
           
           <View style={styles.formContainer}>
             <Text style={styles.text}>Authority mail:</Text>
@@ -90,13 +90,66 @@ const Content_on_the_adminLogin = ({ navigation }: Props) => {
 
 export default Content_on_the_adminLogin;
 
+// const styles = StyleSheet.create({
+//   container: {
+//     height: '90%'
+//   },
+//   heading: {
+//     color: 'white',
+//     fontSize: 60,
+//     marginTop: '30%',
+//     alignSelf: 'center',
+//     fontWeight: 'bold'
+//   },
+//   formContainer: {
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: 'rgb(255, 59, 59)',
+//     width: '85%',
+//     borderRadius: 15,
+//     alignSelf: 'center',
+//     paddingVertical: 20,
+//     marginTop: '20%',
+//   },
+//   input: {
+//     backgroundColor: 'white',
+//     width: '80%',
+//     marginVertical: 10,
+//     padding: 15,
+//     borderRadius: 15,
+//     color: 'black'
+//   },
+//   text: {
+//     alignSelf: 'flex-start',
+//     marginLeft: '10%',
+//     fontSize: 18,
+//     fontWeight: 'bold',
+//     color: 'white',
+//   },
+//   button: {
+//     backgroundColor: 'rgb(255, 59, 59)',
+//     padding: 15,
+//     borderRadius: 5,
+//     width: 200,
+//     alignItems: 'center',
+//     alignSelf: 'center',
+//     margin: '20%'
+//   },
+//   buttonText: {
+//     color: 'white',
+//     fontSize: 16,
+//     fontWeight: 'bold'
+//   },
+// });
+
+
 const styles = StyleSheet.create({
   container: {
     height: '90%'
   },
   heading: {
     color: 'white',
-    fontSize: 60,
+    fontSize: 50,
     marginTop: '30%',
     alignSelf: 'center',
     fontWeight: 'bold'
@@ -110,6 +163,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 20,
     marginTop: '20%',
+    borderWidth:1,
   },
   input: {
     backgroundColor: 'white',
@@ -129,7 +183,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'rgb(255, 59, 59)',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 15,
+    borderWidth:2,
     width: 200,
     alignItems: 'center',
     alignSelf: 'center',

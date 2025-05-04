@@ -115,31 +115,46 @@ if (days <= '3' && days > '0') {
   scheduleNotification();
 }
 
-  useEffect(() => {
-    const requestPermission = async () => {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Camera permission granted');
-      } else {
-        console.log('Camera permission denied');
-      }
-    };
-  
-    requestPermission();
-  }, []);
-
-
-  const handleBarcodeScanned = async () => {
-    setScanned(true);
-    setModalVisible(false); 
-    alert('QR code scanned');
-    await scanUser();
-    
-
+useEffect(() => {
+  const requestPermission = async () => {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log('Camera permission granted');
+    } else {
+      console.log('Camera permission denied');
+    }
   };
 
+  requestPermission();
+}, []);
+
+
+  const handleBarcodeScanned = async ({ data }: { data: string }) => {
+    // Restrict only to valid Passease QR format
+    if (!data.startsWith("passease|user|") || !data.includes("key=PE2025")) {
+      alert("Invalid QR Code ❌");
+      setModalVisible(false); // 💡 Close modal
+      return;
+    }
+  
+    // Check if fullname exists in QR
+    const match = data.match(/fullname=([^|]+)/);
+    if (!match || !match[1]) {
+      alert("Invalid QR Data Format ❌");
+      setModalVisible(false); // 💡 Close modal
+      return;
+    }
+    const extractedName = match[1];
+    setName(extractedName); // Update the name state with scanned name
+  
+    setScanned(true);
+    setModalVisible(false);
+    alert("Scanned successfully ✅");
+    await scanUser();  // Call the scanUser function after validation
+  };
+  
 
   const deleteObjectByName = async (fullname: string) => {
     try {
@@ -165,33 +180,32 @@ if (days <= '3' && days > '0') {
 
 
 
+const scanUser = async () => {
+  if (name === "Loading...") return;
 
-  const scanUser = async () => {
-    if (name === "Loading...") return;
-  
-    try {
-      const response = await axios.post('http://192.168.144.28:5000/api/users/scan', { fullname: name });
-  
-      if (response.status === 200) {
-        console.log('Scan successful');
-  
-        if (response.data.scanCount === 0) {
-          setScanDisabled(true);
-        }
-      }
-    } catch (error: any) {
-      if (error.response && error.response.status === 403) {
-        console.error('No scans left');
+  try {
+    const response = await axios.post('http://192.168.144.28:5000/api/users/scan', { fullname: name });
+
+    if (response.status === 200) {
+      console.log('Scan successful');
+
+      if (response.data.scanCount === 0) {
         setScanDisabled(true);
-      } else if (error.response) {
-        console.error('Scan failed:', error.response.data.error);
-      } else {
-        console.error('Scan error:', error.message);
       }
-    } finally {
-      setModalVisible(false);
     }
-  };
+  } catch (error: any) {
+    if (error.response && error.response.status === 403) {
+      console.error('No scans left');
+      setScanDisabled(true);
+    } else if (error.response) {
+      console.error('Scan failed:', error.response.data.error);
+    } else {
+      console.error('Scan error:', error.message);
+    }
+  } finally {
+    setModalVisible(false);
+  }
+};
 
   const handlePaid = async () => {
     console.log(name);
@@ -247,6 +261,7 @@ if (days <= '3' && days > '0') {
 
   return (
     <LinearGradient colors={['#2980B9', '#89253e']} style={styles.mainContainer}>
+      <Text style={styles.heading}>DASHBOARD</Text>
       <View style={styles.Container}>
         <Image source={require("../app/images/person.jpg")} style={styles.Image} />
         <View style={styles.infoContainer}>
@@ -323,7 +338,6 @@ if (days <= '3' && days > '0') {
               })}}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
@@ -337,7 +351,10 @@ if (days <= '3' && days > '0') {
         <TouchableOpacity onPress={() => navigation.navigate('ChatBot')}>
           <Image source={require('../app/images/profile1.png')} style={styles.icon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+        <TouchableOpacity onPress={() => navigation.reset({   
+                  index: 0,
+                  routes: [{ name: 'Landing' }],
+              })}>
           <Image source={require('../app/images/logout1.png')} style={styles.icon} />
         </TouchableOpacity>
       </View>
@@ -346,6 +363,133 @@ if (days <= '3' && days > '0') {
 };
 
 export default Content_on_theDashboard;
+
+// const styles = StyleSheet.create({
+//   activeText: {
+//     fontSize: 18,
+//     color: '#128c07', // Green text when active
+//     fontWeight: 'bold',
+//     padding: '5%'
+//   },
+//   inactiveText: {
+//     fontSize: 18,
+//     color: 'red', // Red text when inactive
+//     fontWeight: 'bold',
+//     padding: '5%'
+//   },
+//   backButton: {
+//     marginTop: 20,
+//     paddingVertical: 10,
+//     paddingHorizontal: 20,
+//     backgroundColor: '#007BFF',
+//     borderRadius: 8,
+//   },
+//   backButtonText: {
+//     color: 'white',
+//     fontWeight: 'bold',
+//     textAlign: 'center',
+//   },
+  
+//   verificationModalContainer: {
+//     flex: 1,
+//     backgroundColor: 'rgba(0,0,0,0.6)',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   verificationModalContent: {
+//     backgroundColor: 'white',
+//     padding: 30,
+//     borderRadius: 20,
+//     alignItems: 'center',
+//   },
+//   verificationText: {
+//     fontSize: 18,
+//     fontWeight: 'bold',
+//     color: 'black',
+//     textAlign: 'center',
+//   },
+  
+//   mainContainer: {
+//     flex: 1,
+//     alignItems: "center",
+//   },
+//   Container: {
+//     backgroundColor: "red",
+//     height: "70%",
+//     width: "90%",
+//     marginTop: "15%",
+//     borderRadius: 30,
+//   },
+//   Image: {
+//     height: "35%",
+//     width: "46%",
+//     marginLeft: "27%",
+//     borderRadius: 15,
+//     marginTop: "5%",
+//     marginBottom: "5%",
+//   },
+//   infoContainer: {
+//     height: "10%",
+//     backgroundColor: "white",
+//     width: "90%",
+//     marginLeft: "5%",
+//     margin: "2.5%",
+//     borderRadius: 10,
+//   },
+//   Text: {
+//     fontSize: 18,
+//     padding: "5%",
+//   },
+//   button: {
+//     backgroundColor: "#FF3B3B",
+//     padding: 10,
+//     borderRadius: 10,
+//     width: '40%',
+//     alignItems: "center",
+//     justifyContent: "center",
+//     marginVertical: 10,
+//     height: 40,
+//   },
+//   buttonText: {
+//     color: "black",
+//     fontSize: 16,
+//     fontWeight: "bold",
+//   },
+//   NavBar: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-around',
+//     alignItems: 'center',
+//     paddingVertical: 10,
+//     backgroundColor: '#00BFFF',
+//     position: 'absolute',
+//     bottom: 0,
+//     width: '100%',
+//     height: 60,
+//     elevation: 5,
+//   },
+//   icon: {
+//     width: 24,
+//     height: 24,
+//   },
+//   modalContainer: {
+//     flex: 1,
+//     backgroundColor: '#000',
+//     justifyContent: 'center',
+//   },
+//   closeButton: {
+//     position: 'absolute',
+//     bottom: 40,
+//     alignSelf: 'center',
+//     backgroundColor: '#FF3B3B',
+//     padding: 12,
+//     borderRadius: 8,
+//     zIndex: 1,
+//   },
+//   closeText: {
+//     color: 'white',
+//     fontWeight: 'bold',
+//   },
+// });
 
 const styles = StyleSheet.create({
   activeText: {
@@ -372,7 +516,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  
+
   verificationModalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -391,28 +535,38 @@ const styles = StyleSheet.create({
     color: 'black',
     textAlign: 'center',
   },
-  
+
   mainContainer: {
     flex: 1,
     alignItems: "center",
   },
   Container: {
     backgroundColor: "red",
-    height: "70%",
+    height: "62%",
     width: "90%",
-    marginTop: "15%",
+    // marginTop: "15%",
     borderRadius: 30,
+    borderWidth: 1.5
+  },
+  heading: {
+    color: 'white',
+    fontSize: 35,
+    marginTop: '15%',
+    marginBottom:'5%',
+    alignSelf: 'center',
+    fontWeight: 'bold',
   },
   Image: {
     height: "35%",
     width: "46%",
     marginLeft: "27%",
     borderRadius: 15,
+    borderWidth: 1,
     marginTop: "5%",
     marginBottom: "5%",
   },
   infoContainer: {
-    height: "10%",
+    height: "auto",
     backgroundColor: "white",
     width: "90%",
     marginLeft: "5%",
@@ -426,16 +580,17 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#FF3B3B",
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 15,
+    borderWidth: 1.5,
     width: '40%',
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 10,
-    height: 40,
+    height: "6%",
   },
   buttonText: {
     color: "black",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
   },
   NavBar: {

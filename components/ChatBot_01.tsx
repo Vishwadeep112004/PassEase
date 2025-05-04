@@ -21,7 +21,7 @@ type RootStackParamList = {
   Landing: undefined; // Added Landing to the type definition
 };
 
-const ChatBot = () => {
+const ChatBot_01 = () => {
 
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -144,27 +144,11 @@ const ChatBot = () => {
           <Text style={styles.sendText}>Send</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Bottom Navigation Bar */}
-      <View style={styles.NavBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={require('../app/images/home1.png')} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ChatBot')}>
-          <Image source={require('../app/images/profile2.png')} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.reset({   
-                  index: 0,
-                  routes: [{ name: 'Landing' }],
-              })}>
-          <Image source={require('../app/images/logout1.png')} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
     </KeyboardAvoidingView>
   );
 };
 
-export default ChatBot;
+export default ChatBot_01;
 
 const styles = StyleSheet.create({
   container: {
